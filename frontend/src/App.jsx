@@ -2,6 +2,8 @@ import { Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
+import DoctorListPage from "./pages/doctors/DoctorListPage";
+import DoctorDetailPage from "./pages/doctors/DoctorDetailPage";
 
 export default function App() {
   return (
@@ -9,6 +11,8 @@ export default function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/doctors" element={<DoctorListPage />} />
+      <Route path="/doctors/:id" element={<DoctorDetailPage />} />
     </Routes>
   );
 }

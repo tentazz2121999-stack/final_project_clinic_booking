@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { Box, Typography, Button, Stack, Paper } from "@mui/material";
 import { useAuth } from "../context/AuthContext";
 
-// TODO: thay bằng trang chủ thật khi có tính năng tìm bác sĩ
 export default function HomePage() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
@@ -27,21 +26,29 @@ export default function HomePage() {
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               ({user.email} — vai trò: {user.role})
             </Typography>
-            <Button variant="outlined" color="error" onClick={handleLogout}>
-              Đăng xuất
-            </Button>
+            <Stack direction="row" spacing={2} sx={{ justifyContent: "center" }}>
+              <Button variant="contained" onClick={() => navigate("/doctors")}>
+                Tìm bác sĩ
+              </Button>
+              <Button variant="outlined" color="error" onClick={handleLogout}>
+                Đăng xuất
+              </Button>
+            </Stack>
           </>
         ) : (
           <>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Bạn chưa đăng nhập.
             </Typography>
-            <Stack direction="row" spacing={2} sx={{ justifyContent: "center" }}>
+            <Stack direction="row" spacing={2} sx={{ justifyContent: "center", flexWrap: "wrap" }}>
               <Button variant="contained" onClick={() => navigate("/login")}>
                 Đăng nhập
               </Button>
               <Button variant="outlined" onClick={() => navigate("/register")}>
                 Đăng ký
+              </Button>
+              <Button variant="text" onClick={() => navigate("/doctors")}>
+                Tìm bác sĩ
               </Button>
             </Stack>
           </>
