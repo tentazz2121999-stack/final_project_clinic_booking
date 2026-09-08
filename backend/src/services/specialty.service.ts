@@ -1,7 +1,7 @@
-const prisma = require("../config/prisma");
+import prisma from "../config/prisma";
 
 async function getAll() {
   return prisma.specialty.findMany({ orderBy: { name: "asc" } });
 }
 
-module.exports = { getAll };
+export default { getAll };

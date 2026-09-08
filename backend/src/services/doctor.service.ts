@@ -1,16 +1,23 @@
-const prisma = require("../config/prisma");
-const ApiError = require("../utils/apiError");
-const { buildPagination, buildMeta } = require("../utils/pagination");
-const { computeAvailableSlots } = require("../utils/slotCalculator");
+import { Prisma } from "@prisma/client";
+import prisma from "../config/prisma";
+import { ApiError } from "../utils/apiError";
+import { buildPagination, buildMeta } from "../utils/pagination";
+import { computeAvailableSlots } from "../utils/slotCalculator";
 
 const doctorInclude = {
   user: { select: { id: true, fullName: true, phone: true } },
   specialty: true,
 };
 
-async function list(query) {
+interface ListQuery {
+  page?: string;
+  limit?: string;
+  specialtyId?: string;
+}
+
+async function list(query: ListQuery) {
   const { page, limit, skip } = buildPagination(query);
-  const where = {};
+  const where: Prisma.DoctorProfileWhereInput = {};
   if (query.specialtyId) where.specialtyId = Number(query.specialtyId);
 
   const [items, total] = await Promise.all([
@@ -21,13 +28,13 @@ async function list(query) {
   return { items, meta: buildMeta({ page, limit, total }) };
 }
 
-async function getById(id) {
+async function getById(id: number) {
   const doctor = await prisma.doctorProfile.findUnique({ where: { id }, include: doctorInclude });
   if (!doctor) throw ApiError.notFound("Không tìm thấy bác sĩ");
   return doctor;
 }
 
-async function getAvailableSlots(doctorId, dateStr) {
+async function getAvailableSlots(doctorId: number, dateStr: string) {
   const doctor = await prisma.doctorProfile.findUnique({
     where: { id: doctorId },
     include: { availabilities: true },
@@ -63,4 +70,4 @@ async function getAvailableSlots(doctorId, dateStr) {
   return { date: dateStr, slots };
 }
 
-module.exports = { list, getById, getAvailableSlots };
+export default { list, getById, getAvailableSlots };

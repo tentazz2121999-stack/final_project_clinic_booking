@@ -1,9 +1,9 @@
-const asyncHandler = require("../utils/asyncHandler");
-const doctorService = require("../services/doctor.service");
-const ApiError = require("../utils/apiError");
+import { asyncHandler } from "../utils/asyncHandler";
+import doctorService from "../services/doctor.service";
+import { ApiError } from "../utils/apiError";
 
 const list = asyncHandler(async (req, res) => {
-  const result = await doctorService.list(req.query);
+  const result = await doctorService.list(req.query as any);
   res.json({ success: true, ...result });
 });
 
@@ -16,8 +16,8 @@ const getAvailableSlots = asyncHandler(async (req, res) => {
   const doctorId = Number(req.params.id);
   const { date } = req.query;
   if (!date) throw ApiError.badRequest("Vui lòng cung cấp ?date=YYYY-MM-DD");
-  const result = await doctorService.getAvailableSlots(doctorId, date);
+  const result = await doctorService.getAvailableSlots(doctorId, date as string);
   res.json({ success: true, data: result });
 });
 
-module.exports = { list, getById, getAvailableSlots };
+export default { list, getById, getAvailableSlots };

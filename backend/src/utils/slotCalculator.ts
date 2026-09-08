@@ -1,25 +1,43 @@
-function toMinutes(hhmm) {
+export interface TimeRange {
+  startTime: string;
+  endTime: string;
+}
+
+export interface Slot {
+  startTime: string;
+  endTime: string;
+}
+
+export function toMinutes(hhmm: string): number {
   const [h, m] = hhmm.split(":").map(Number);
   return h * 60 + m;
 }
 
-function toHHMM(totalMinutes) {
+export function toHHMM(totalMinutes: number): string {
   const h = Math.floor(totalMinutes / 60).toString().padStart(2, "0");
   const m = (totalMinutes % 60).toString().padStart(2, "0");
   return `${h}:${m}`;
 }
 
-function rangesOverlap(aStart, aEnd, bStart, bEnd) {
+export function rangesOverlap(aStart: number, aEnd: number, bStart: number, bEnd: number): boolean {
   return aStart < bEnd && bStart < aEnd;
 }
 
-function computeAvailableSlots({ availabilities, bookedAppointments, slotDurationMinutes }) {
+export function computeAvailableSlots({
+  availabilities,
+  bookedAppointments,
+  slotDurationMinutes,
+}: {
+  availabilities: TimeRange[];
+  bookedAppointments: TimeRange[];
+  slotDurationMinutes: number;
+}): Slot[] {
   const busyRanges = bookedAppointments.map((b) => ({
     start: toMinutes(b.startTime),
     end: toMinutes(b.endTime),
   }));
 
-  const slots = [];
+  const slots: Slot[] = [];
 
   for (const window of availabilities) {
     const windowStart = toMinutes(window.startTime);
@@ -36,5 +54,3 @@ function computeAvailableSlots({ availabilities, bookedAppointments, slotDuratio
 
   return slots;
 }
-
-module.exports = { computeAvailableSlots, toMinutes, toHHMM, rangesOverlap };
