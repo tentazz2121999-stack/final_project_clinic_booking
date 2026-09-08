@@ -1,5 +1,5 @@
-const asyncHandler = require("../utils/asyncHandler");
-const authService = require("../services/auth.service");
+import { asyncHandler } from "../utils/asyncHandler";
+import authService from "../services/auth.service";
 
 const register = asyncHandler(async (req, res) => {
   const result = await authService.register(req.body);
@@ -18,8 +18,8 @@ const refreshToken = asyncHandler(async (req, res) => {
 });
 
 const logout = asyncHandler(async (req, res) => {
-  await authService.logout(req.user.id);
+  await authService.logout(req.user!.id);
   res.json({ success: true, message: "Đăng xuất thành công" });
 });
 
-module.exports = { register, login, refreshToken, logout };
+export default { register, login, refreshToken, logout };

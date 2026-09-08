@@ -1,6 +1,6 @@
-const yup = require("yup");
+import * as yup from "yup";
 
-const registerSchema = yup.object({
+export const registerSchema = yup.object({
   email: yup.string().email("Email không hợp lệ").required("Email là bắt buộc"),
   password: yup.string().min(6, "Mật khẩu tối thiểu 6 ký tự").required("Mật khẩu là bắt buộc"),
   fullName: yup.string().required("Họ tên là bắt buộc"),
@@ -16,13 +16,11 @@ const registerSchema = yup.object({
     }),
 });
 
-const loginSchema = yup.object({
+export const loginSchema = yup.object({
   email: yup.string().email("Email không hợp lệ").required("Email là bắt buộc"),
   password: yup.string().required("Mật khẩu là bắt buộc"),
 });
 
-const refreshTokenSchema = yup.object({
+export const refreshTokenSchema = yup.object({
   refreshToken: yup.string().required("Thiếu refreshToken"),
 });
-
-module.exports = { registerSchema, loginSchema, refreshTokenSchema };

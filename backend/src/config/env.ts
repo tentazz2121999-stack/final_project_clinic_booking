@@ -1,6 +1,7 @@
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
 
-module.exports = {
+const env = {
   port: process.env.PORT || 5001,
   nodeEnv: process.env.NODE_ENV || "development",
   clientOrigin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
@@ -10,4 +11,7 @@ module.exports = {
     accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || "15m",
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
   },
+  minCancelHoursBefore: Number(process.env.MIN_CANCEL_HOURS_BEFORE || 2),
 };
+
+export default env;

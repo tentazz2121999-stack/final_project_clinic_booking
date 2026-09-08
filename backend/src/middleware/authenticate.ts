@@ -1,7 +1,8 @@
-const ApiError = require("../utils/apiError");
-const { verifyAccessToken } = require("../utils/jwt");
+import { NextFunction, Request, Response } from "express";
+import { ApiError } from "../utils/apiError";
+import { verifyAccessToken } from "../utils/jwt";
 
-function authenticate(req, res, next) {
+function authenticate(req: Request, res: Response, next: NextFunction) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith("Bearer ")) {
     return next(ApiError.unauthorized("Thiếu access token"));
@@ -9,11 +10,11 @@ function authenticate(req, res, next) {
   const token = header.split(" ")[1];
   try {
     const payload = verifyAccessToken(token);
-    req.user = payload; // { id, role, email }
+    req.user = payload;
     next();
   } catch (err) {
     next(ApiError.unauthorized("Access token không hợp lệ hoặc đã hết hạn"));
   }
 }
 
-module.exports = authenticate;
+export default authenticate;

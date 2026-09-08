@@ -1,18 +1,27 @@
-const bcrypt = require("bcryptjs");
-const prisma = require("../config/prisma");
-const ApiError = require("../utils/apiError");
-const { signAccessToken, signRefreshToken, verifyRefreshToken } = require("../utils/jwt");
+import bcrypt from "bcryptjs";
+import { User } from "@prisma/client";
+import prisma from "../config/prisma";
+import { ApiError } from "../utils/apiError";
+import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/jwt";
 
-function toPublicUser(user) {
+interface RegisterInput {
+  email: string;
+  password: string;
+  fullName: string;
+  phone?: string | null;
+  dateOfBirth?: string | null;
+}
+
+function toPublicUser(user: User) {
   const { password, refreshToken, ...publicUser } = user;
   return publicUser;
 }
 
-function buildTokenPayload(user) {
+function buildTokenPayload(user: User) {
   return { id: user.id, role: user.role, email: user.email };
 }
 
-async function register(data) {
+async function register(data: RegisterInput) {
   const existing = await prisma.user.findUnique({ where: { email: data.email } });
   if (existing) throw ApiError.conflict("Email đã được sử dụng");
 
@@ -32,7 +41,7 @@ async function register(data) {
   return issueTokens(user);
 }
 
-async function login(email, password) {
+async function login(email: string, password: string) {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) throw ApiError.unauthorized("Email hoặc mật khẩu không đúng");
 
@@ -42,7 +51,7 @@ async function login(email, password) {
   return issueTokens(user);
 }
 
-async function issueTokens(user) {
+async function issueTokens(user: User) {
   const payload = buildTokenPayload(user);
   const accessToken = signAccessToken(payload);
   const refreshToken = signRefreshToken(payload);
@@ -52,7 +61,7 @@ async function issueTokens(user) {
   return { user: toPublicUser(user), accessToken, refreshToken };
 }
 
-async function refreshAccessToken(token) {
+async function refreshAccessToken(token: string) {
   let payload;
   try {
     payload = verifyRefreshToken(token);
@@ -69,8 +78,8 @@ async function refreshAccessToken(token) {
   return { accessToken };
 }
 
-async function logout(userId) {
+async function logout(userId: number) {
   await prisma.user.update({ where: { id: userId }, data: { refreshToken: null } });
 }
 
-module.exports = { register, login, refreshAccessToken, logout, toPublicUser };
+export default { register, login, refreshAccessToken, logout, toPublicUser };
