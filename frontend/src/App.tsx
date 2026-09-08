@@ -4,6 +4,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import DoctorListPage from "./pages/doctors/DoctorListPage";
 import DoctorDetailPage from "./pages/doctors/DoctorDetailPage";
+import MyAppointmentsPage from "./pages/appointments/MyAppointmentsPage";
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/doctors" element={<DoctorListPage />} />
       <Route path="/doctors/:id" element={<DoctorDetailPage />} />
+      <Route path="/appointments/me" element={<MyAppointmentsPage />} />
     </Routes>
   );
 }
