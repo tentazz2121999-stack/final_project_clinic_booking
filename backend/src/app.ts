@@ -1,9 +1,9 @@
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import cors from "cors";
 
-const env = require("./config/env");
-const routes = require("./routes");
-const { notFoundHandler, errorHandler } = require("./middleware/errorHandler");
+import env from "./config/env";
+import routes from "./routes";
+import { notFoundHandler, errorHandler } from "./middleware/errorHandler";
 
 const app = express();
 
@@ -17,4 +17,4 @@ app.use("/api/v1", routes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-module.exports = app;
+export default app;
