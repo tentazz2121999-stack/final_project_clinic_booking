@@ -14,13 +14,14 @@ import {
 } from "@mui/material";
 import doctorService from "../../api/doctorService";
 import specialtyService from "../../api/specialtyService";
+import { Doctor, Meta, Specialty } from "../../types/doctor";
 
 export default function DoctorListPage() {
-  const [specialties, setSpecialties] = useState([]);
+  const [specialties, setSpecialties] = useState<Specialty[]>([]);
   const [specialtyId, setSpecialtyId] = useState("");
   const [page, setPage] = useState(1);
-  const [doctors, setDoctors] = useState([]);
-  const [meta, setMeta] = useState({ page: 1, totalPages: 1 });
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [meta, setMeta] = useState<Meta>({ page: 1, limit: 6, total: 0, totalPages: 1 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -69,7 +70,7 @@ export default function DoctorListPage() {
       ) : (
         <Grid container spacing={2}>
           {doctors.map((d) => (
-            <Grid item xs={12} sm={6} key={d.id}>
+            <Grid size={{ xs: 12, sm: 6 }} key={d.id}>
               <Card
                 component={RouterLink}
                 to={`/doctors/${d.id}`}
@@ -90,7 +91,7 @@ export default function DoctorListPage() {
 
       {meta.totalPages > 1 && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-          <Pagination count={meta.totalPages} page={page} onChange={(e, v) => setPage(v)} />
+          <Pagination count={meta.totalPages} page={page} onChange={(_e, v) => setPage(v)} />
         </Box>
       )}
     </Box>
