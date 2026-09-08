@@ -5,6 +5,7 @@ import * as yup from "yup";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { Box, Paper, TextField, Typography, Button, Alert, Link, Stack } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
+import { getErrorMessage } from "../../utils/getErrorMessage";
 
 const schema = yup.object({
   fullName: yup.string().required("Vui lòng nhập họ tên"),
@@ -17,6 +18,8 @@ const schema = yup.object({
     .required("Vui lòng xác nhận mật khẩu"),
 });
 
+type FormValues = yup.InferType<typeof schema>;
+
 export default function RegisterPage() {
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
@@ -27,21 +30,21 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ resolver: yupResolver(schema) });
+  } = useForm<FormValues>({ resolver: yupResolver(schema) });
 
-  const onSubmit = async (values) => {
+  const onSubmit = async (values: FormValues) => {
     setErrorMsg("");
     setSubmitting(true);
     try {
       await registerUser({
         fullName: values.fullName,
         email: values.email,
-        phone: values.phone,
+        phone: values.phone ?? undefined,
         password: values.password,
       });
       navigate("/", { replace: true });
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || "Đăng ký thất bại");
+      setErrorMsg(getErrorMessage(err, "Đăng ký thất bại"));
     } finally {
       setSubmitting(false);
     }

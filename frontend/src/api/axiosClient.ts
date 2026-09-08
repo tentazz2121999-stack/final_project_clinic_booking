@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api/v1";
 
@@ -15,28 +15,32 @@ axiosClient.interceptors.request.use((config) => {
   return config;
 });
 
-let isRefreshing = false;
-let pendingQueue = [];
+interface RetryConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
 
-function resolveQueue(error, token) {
+let isRefreshing = false;
+let pendingQueue: { resolve: (token: string) => void; reject: (err: unknown) => void }[] = [];
+
+function resolveQueue(error: unknown, token: string | null) {
   pendingQueue.forEach(({ resolve, reject }) => {
     if (error) reject(error);
-    else resolve(token);
+    else resolve(token as string);
   });
   pendingQueue = [];
 }
 
 axiosClient.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+  async (error: AxiosError) => {
+    const originalRequest = error.config as RetryConfig;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       const refreshToken = localStorage.getItem("refreshToken");
       if (!refreshToken) return Promise.reject(error);
 
       if (isRefreshing) {
-        return new Promise((resolve, reject) => {
+        return new Promise<string>((resolve, reject) => {
           pendingQueue.push({ resolve, reject });
         }).then((newToken) => {
           originalRequest.headers.Authorization = `Bearer ${newToken}`;

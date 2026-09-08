@@ -18,7 +18,7 @@ export default function HomePage() {
           Clinic Booking
         </Typography>
 
-        {isAuthenticated ? (
+        {isAuthenticated && user ? (
           <>
             <Typography variant="body1" sx={{ mb: 1 }}>
               Xin chào, <b>{user.fullName}</b>
@@ -26,10 +26,15 @@ export default function HomePage() {
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               ({user.email} — vai trò: {user.role})
             </Typography>
-            <Stack direction="row" spacing={2} sx={{ justifyContent: "center" }}>
+            <Stack direction="row" spacing={2} sx={{ justifyContent: "center", flexWrap: "wrap" }}>
               <Button variant="contained" onClick={() => navigate("/doctors")}>
                 Tìm bác sĩ
               </Button>
+              {user.role === "PATIENT" && (
+                <Button variant="outlined" onClick={() => navigate("/appointments/me")}>
+                  Lịch hẹn của tôi
+                </Button>
+              )}
               <Button variant="outlined" color="error" onClick={handleLogout}>
                 Đăng xuất
               </Button>

@@ -5,11 +5,14 @@ import * as yup from "yup";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { Box, Paper, TextField, Typography, Button, Alert, Link, Stack } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
+import { getErrorMessage } from "../../utils/getErrorMessage";
 
 const schema = yup.object({
   email: yup.string().email("Email không hợp lệ").required("Vui lòng nhập email"),
   password: yup.string().required("Vui lòng nhập mật khẩu"),
 });
+
+type FormValues = yup.InferType<typeof schema>;
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -21,16 +24,16 @@ export default function LoginPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ resolver: yupResolver(schema) });
+  } = useForm<FormValues>({ resolver: yupResolver(schema) });
 
-  const onSubmit = async (values) => {
+  const onSubmit = async (values: FormValues) => {
     setErrorMsg("");
     setSubmitting(true);
     try {
       await login(values.email, values.password);
       navigate("/", { replace: true });
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || "Đăng nhập thất bại");
+      setErrorMsg(getErrorMessage(err, "Đăng nhập thất bại"));
     } finally {
       setSubmitting(false);
     }

@@ -1,28 +1,43 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, ReactNode, useContext, useMemo, useState } from "react";
 import authService from "../api/authService";
+import { LoginPayload, RegisterPayload, User } from "../types/auth";
 
-const AuthContext = createContext(null);
+interface Session {
+  user: User;
+  accessToken: string;
+  refreshToken: string;
+}
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
+interface AuthContextValue {
+  user: User | null;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<User>;
+  register: (payload: RegisterPayload) => Promise<User>;
+  logout: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(() => {
     const stored = localStorage.getItem("user");
     return stored ? JSON.parse(stored) : null;
   });
 
-  function persistSession({ user: sessionUser, accessToken, refreshToken }) {
+  function persistSession({ user: sessionUser, accessToken, refreshToken }: Session) {
     localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("refreshToken", refreshToken);
     localStorage.setItem("user", JSON.stringify(sessionUser));
     setUser(sessionUser);
   }
 
-  async function login(email, password) {
-    const { data } = await authService.login({ email, password });
+  async function login(email: string, password: string) {
+    const { data } = await authService.login({ email, password } as LoginPayload);
     persistSession(data.data);
     return data.data.user;
   }
 
-  async function register(payload) {
+  async function register(payload: RegisterPayload) {
     const { data } = await authService.register(payload);
     persistSession(data.data);
     return data.data.user;
