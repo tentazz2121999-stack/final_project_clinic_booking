@@ -16,6 +16,8 @@ import {
 import doctorService from "../../api/doctorService";
 import appointmentService from "../../api/appointmentService";
 import { useAuth } from "../../context/AuthContext";
+import { getErrorMessage } from "../../utils/getErrorMessage";
+import { Doctor, Slot } from "../../types/doctor";
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -26,13 +28,13 @@ export default function DoctorDetailPage() {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
 
-  const [doctor, setDoctor] = useState(null);
+  const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [notFound, setNotFound] = useState(false);
 
   const [date, setDate] = useState(todayISO());
-  const [slots, setSlots] = useState([]);
+  const [slots, setSlots] = useState<Slot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -40,7 +42,7 @@ export default function DoctorDetailPage() {
 
   useEffect(() => {
     doctorService
-      .getById(id)
+      .getById(id!)
       .then(({ data }) => setDoctor(data.data))
       .catch(() => setNotFound(true));
   }, [id]);
@@ -50,7 +52,7 @@ export default function DoctorDetailPage() {
     setLoadingSlots(true);
     setSelectedSlot(null);
     doctorService
-      .getSlots(id, date)
+      .getSlots(id!, date)
       .then(({ data }) => setSlots(data.data.slots))
       .catch(() => setSlots([]))
       .finally(() => setLoadingSlots(false));
@@ -60,7 +62,7 @@ export default function DoctorDetailPage() {
     setErrorMsg("");
     setSuccessMsg("");
 
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
       navigate("/login");
       return;
     }
@@ -79,10 +81,10 @@ export default function DoctorDetailPage() {
       setSuccessMsg("Đặt lịch thành công!");
       setSelectedSlot(null);
       setReason("");
-      const { data } = await doctorService.getSlots(id, date);
+      const { data } = await doctorService.getSlots(id!, date);
       setSlots(data.data.slots);
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || "Đặt lịch thất bại, vui lòng thử lại.");
+      setErrorMsg(getErrorMessage(err, "Đặt lịch thất bại, vui lòng thử lại."));
     } finally {
       setSubmitting(false);
     }
@@ -110,7 +112,7 @@ export default function DoctorDetailPage() {
   return (
     <Box sx={{ maxWidth: 900, mx: "auto", mt: 4, px: 2 }}>
       <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ p: 4 }} elevation={3}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
               <Avatar sx={{ width: 64, height: 64 }}>{doctor.user.fullName.charAt(0)}</Avatar>
@@ -138,7 +140,7 @@ export default function DoctorDetailPage() {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ p: 4 }} elevation={3}>
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
               Đặt lịch khám
@@ -161,8 +163,7 @@ export default function DoctorDetailPage() {
               fullWidth
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              inputProps={{ min: todayISO() }}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ htmlInput: { min: todayISO() }, inputLabel: { shrink: true } }}
               sx={{ mb: 2 }}
             />
 
