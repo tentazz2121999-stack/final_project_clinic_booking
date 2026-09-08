@@ -1,6 +1,6 @@
-const yup = require("yup");
+import * as yup from "yup";
 
-const createAppointmentSchema = yup.object({
+export const createAppointmentSchema = yup.object({
   doctorId: yup.number().integer().required("Bác sĩ là bắt buộc"),
   date: yup
     .string()
@@ -12,5 +12,3 @@ const createAppointmentSchema = yup.object({
     .required("Giờ khám là bắt buộc"),
   reason: yup.string().nullable(),
 });
-
-module.exports = { createAppointmentSchema };
