@@ -27,6 +27,7 @@ model User {
   updatedAt    DateTime  @updatedAt
 
   doctorProfile DoctorProfile?
+  appointments  Appointment[]  @relation("PatientAppointments")
 
   @@map("users")
 }
@@ -57,5 +58,46 @@ model DoctorProfile {
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   specialty Specialty @relation(fields: [specialtyId], references: [id])
 
+  availabilities DoctorAvailability[]
+  appointments   Appointment[]
+
   @@map("doctor_profiles")
+}
+
+model DoctorAvailability {
+  id        Int    @id @default(autoincrement())
+  doctorId  Int
+  dayOfWeek Int
+  startTime String
+  endTime   String
+
+  doctor DoctorProfile @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@unique([doctorId, dayOfWeek, startTime, endTime])
+  @@map("doctor_availabilities")
+}
+
+enum AppointmentStatus {
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model Appointment {
+  id        Int               @id @default(autoincrement())
+  doctorId  Int
+  patientId Int
+  date      DateTime          @db.Date
+  startTime String
+  endTime   String
+  reason    String?
+  status    AppointmentStatus @default(CONFIRMED)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  doctor  DoctorProfile @relation(fields: [doctorId], references: [id])
+  patient User          @relation("PatientAppointments", fields: [patientId], references: [id])
+
+  @@unique([doctorId, date, startTime])
+  @@map("appointments")
 }
