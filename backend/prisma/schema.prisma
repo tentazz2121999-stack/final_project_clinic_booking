@@ -60,6 +60,7 @@ model DoctorProfile {
   specialty Specialty @relation(fields: [specialtyId], references: [id])
 
   availabilities DoctorAvailability[]
+  blocks         DoctorTimeBlock[]
   appointments   Appointment[]
   reviews        Review[]
 
@@ -77,6 +78,20 @@ model DoctorAvailability {
 
   @@unique([doctorId, dayOfWeek, startTime, endTime])
   @@map("doctor_availabilities")
+}
+
+model DoctorTimeBlock {
+  id        Int      @id @default(autoincrement())
+  doctorId  Int
+  date      DateTime @db.Date
+  startTime String
+  endTime   String
+  reason    String?
+  createdAt DateTime @default(now())
+
+  doctor DoctorProfile @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@map("doctor_time_blocks")
 }
 
 enum AppointmentStatus {
