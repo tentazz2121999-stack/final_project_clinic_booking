@@ -53,16 +53,22 @@ async function getAvailableSlots(doctorId: number, dateStr: string) {
   const endOfDay = new Date(dateStr);
   endOfDay.setHours(23, 59, 59, 999);
 
-  const bookedAppointments = await prisma.appointment.findMany({
-    where: {
-      doctorId,
-      date: { gte: startOfDay, lte: endOfDay },
-      status: { not: "CANCELLED" },
-    },
-  });
+  const [blocks, bookedAppointments] = await Promise.all([
+    prisma.doctorTimeBlock.findMany({
+      where: { doctorId, date: { gte: startOfDay, lte: endOfDay } },
+    }),
+    prisma.appointment.findMany({
+      where: {
+        doctorId,
+        date: { gte: startOfDay, lte: endOfDay },
+        status: { not: "CANCELLED" },
+      },
+    }),
+  ]);
 
   const slots = computeAvailableSlots({
     availabilities,
+    blocks,
     bookedAppointments,
     slotDurationMinutes: doctor.slotDurationMinutes,
   });
@@ -70,4 +76,83 @@ async function getAvailableSlots(doctorId: number, dateStr: string) {
   return { date: dateStr, slots };
 }
 
-export default { list, getById, getAvailableSlots };
+interface AvailabilityInput {
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+}
+
+interface TimeBlockInput {
+  date: string;
+  startTime: string;
+  endTime: string;
+  reason?: string | null;
+}
+
+async function getByUserId(userId: number) {
+  const doctor = await prisma.doctorProfile.findUnique({
+    where: { userId },
+    include: { ...doctorInclude, availabilities: true },
+  });
+  if (!doctor) throw ApiError.notFound("Không tìm thấy hồ sơ bác sĩ ứng với tài khoản này");
+  return doctor;
+}
+
+async function addAvailability(doctorId: number, data: AvailabilityInput) {
+  await getById(doctorId);
+  const existing = await prisma.doctorAvailability.findUnique({
+    where: {
+      doctorId_dayOfWeek_startTime_endTime: {
+        doctorId,
+        dayOfWeek: data.dayOfWeek,
+        startTime: data.startTime,
+        endTime: data.endTime,
+      },
+    },
+  });
+  if (existing) throw ApiError.conflict("Khung giờ này đã tồn tại");
+
+  return prisma.doctorAvailability.create({ data: { ...data, doctorId } });
+}
+
+async function removeAvailability(doctorId: number, availabilityId: number) {
+  const availability = await prisma.doctorAvailability.findUnique({ where: { id: availabilityId } });
+  if (!availability || availability.doctorId !== doctorId) {
+    throw ApiError.notFound("Không tìm thấy khung giờ làm việc");
+  }
+  await prisma.doctorAvailability.delete({ where: { id: availabilityId } });
+}
+
+async function addTimeBlock(doctorId: number, data: TimeBlockInput) {
+  await getById(doctorId);
+  return prisma.doctorTimeBlock.create({
+    data: { ...data, date: new Date(data.date), doctorId },
+  });
+}
+
+async function removeTimeBlock(doctorId: number, blockId: number) {
+  const block = await prisma.doctorTimeBlock.findUnique({ where: { id: blockId } });
+  if (!block || block.doctorId !== doctorId) {
+    throw ApiError.notFound("Không tìm thấy lịch chặn");
+  }
+  await prisma.doctorTimeBlock.delete({ where: { id: blockId } });
+}
+
+async function listTimeBlocks(doctorId: number) {
+  return prisma.doctorTimeBlock.findMany({
+    where: { doctorId },
+    orderBy: { date: "asc" },
+  });
+}
+
+export default {
+  list,
+  getById,
+  getByUserId,
+  getAvailableSlots,
+  addAvailability,
+  removeAvailability,
+  addTimeBlock,
+  removeTimeBlock,
+  listTimeBlocks,
+};

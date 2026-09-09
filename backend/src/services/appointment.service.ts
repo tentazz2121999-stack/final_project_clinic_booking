@@ -4,6 +4,7 @@ import { ApiError } from "../utils/apiError";
 import env from "../config/env";
 import { buildPagination, buildMeta } from "../utils/pagination";
 import doctorService from "./doctor.service";
+import { TokenPayload } from "../utils/jwt";
 
 const appointmentInclude = {
   doctor: {
@@ -26,6 +27,11 @@ interface CreateAppointmentInput {
 interface ListQuery {
   page?: string;
   limit?: string;
+  status?: string;
+}
+
+interface DoctorListQuery {
+  date?: string;
   status?: string;
 }
 
@@ -79,6 +85,24 @@ async function listMineAsPatient(patientId: number, query: ListQuery) {
   return { items, meta: buildMeta({ page, limit, total }) };
 }
 
+async function listMineAsDoctor(doctorProfileId: number, query: DoctorListQuery) {
+  const where: Prisma.AppointmentWhereInput = { doctorId: doctorProfileId };
+  if (query.status) where.status = query.status as AppointmentStatus;
+  if (query.date) {
+    const start = new Date(query.date);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(query.date);
+    end.setHours(23, 59, 59, 999);
+    where.date = { gte: start, lte: end };
+  }
+
+  return prisma.appointment.findMany({
+    where,
+    include: appointmentInclude,
+    orderBy: [{ date: "asc" }, { startTime: "asc" }],
+  });
+}
+
 async function getById(id: number) {
   const appointment = await prisma.appointment.findUnique({ where: { id }, include: appointmentInclude });
   if (!appointment) throw ApiError.notFound("Không tìm thấy lịch hẹn");
@@ -117,4 +141,22 @@ async function cancel(id: number, patientId: number) {
   });
 }
 
-export default { create, listMineAsPatient, getById, cancel };
+async function complete(id: number, user: TokenPayload) {
+  const appointment = await getById(id);
+  if (user.role === "DOCTOR" && appointment.doctor.userId !== user.id) {
+    throw ApiError.forbidden("Bạn không có quyền thao tác trên lịch hẹn này");
+  }
+  if (user.role === "PATIENT") throw ApiError.forbidden();
+
+  if (appointment.status !== "CONFIRMED") {
+    throw ApiError.conflict("Chỉ có thể đánh dấu hoàn thành cho lịch hẹn đang ở trạng thái đã xác nhận");
+  }
+
+  return prisma.appointment.update({
+    where: { id },
+    data: { status: "COMPLETED" },
+    include: appointmentInclude,
+  });
+}
+
+export default { create, listMineAsPatient, listMineAsDoctor, getById, cancel, complete };

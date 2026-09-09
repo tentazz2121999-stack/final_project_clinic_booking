@@ -25,14 +25,16 @@ export function rangesOverlap(aStart: number, aEnd: number, bStart: number, bEnd
 
 export function computeAvailableSlots({
   availabilities,
+  blocks = [],
   bookedAppointments,
   slotDurationMinutes,
 }: {
   availabilities: TimeRange[];
+  blocks?: TimeRange[];
   bookedAppointments: TimeRange[];
   slotDurationMinutes: number;
 }): Slot[] {
-  const busyRanges = bookedAppointments.map((b) => ({
+  const busyRanges = [...blocks, ...bookedAppointments].map((b) => ({
     start: toMinutes(b.startTime),
     end: toMinutes(b.endTime),
   }));
