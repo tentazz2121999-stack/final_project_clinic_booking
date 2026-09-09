@@ -38,6 +38,16 @@ export default function HomePage() {
                   Lịch hẹn của tôi
                 </Button>
               )}
+              {user.role === "DOCTOR" && (
+                <>
+                  <Button variant="outlined" onClick={() => navigate("/doctor/schedule")}>
+                    Lịch làm việc
+                  </Button>
+                  <Button variant="outlined" onClick={() => navigate("/doctor/appointments")}>
+                    Bệnh nhân trong ngày
+                  </Button>
+                </>
+              )}
               <Button variant="outlined" color="error" onClick={handleLogout}>
                 Đăng xuất
               </Button>

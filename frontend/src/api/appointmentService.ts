@@ -12,10 +12,16 @@ interface ReviewPayload {
   comment?: string;
 }
 
+interface ListMineParams {
+  date?: string;
+  status?: string;
+}
+
 const appointmentService = {
   create: (data: CreateAppointmentPayload) => axiosClient.post("/appointments", data),
-  listMine: () => axiosClient.get("/appointments/me"),
+  listMine: (params?: ListMineParams) => axiosClient.get("/appointments/me", { params }),
   cancel: (id: number) => axiosClient.patch(`/appointments/${id}/cancel`),
+  complete: (id: number) => axiosClient.patch(`/appointments/${id}/complete`),
   review: (id: number, data: ReviewPayload) => axiosClient.post(`/appointments/${id}/review`, data),
 };
 

@@ -4,6 +4,21 @@ export interface Specialty {
   description: string | null;
 }
 
+export interface Availability {
+  id: number;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+}
+
+export interface TimeBlock {
+  id: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  reason: string | null;
+}
+
 export interface Doctor {
   id: number;
   bio: string | null;
@@ -18,6 +33,7 @@ export interface Doctor {
     phone: string | null;
   };
   specialty: Specialty;
+  availabilities?: Availability[];
 }
 
 export interface Meta {

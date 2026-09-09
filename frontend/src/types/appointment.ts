@@ -19,4 +19,5 @@ export interface Appointment {
   status: AppointmentStatus;
   doctor: Doctor;
   review: Review | null;
+  patient?: { fullName: string; phone: string | null; email: string };
 }
