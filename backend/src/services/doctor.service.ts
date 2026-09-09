@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import prisma from "../config/prisma";
 import { ApiError } from "../utils/apiError";
 import { buildPagination, buildMeta } from "../utils/pagination";
-import { computeAvailableSlots, toMinutes } from "../utils/slotCalculator";
+import { computeAvailableSlots, rangesOverlap, toMinutes } from "../utils/slotCalculator";
 
 const doctorInclude = {
   user: { select: { id: true, fullName: true, phone: true } },
@@ -135,8 +135,30 @@ async function removeAvailability(doctorId: number, availabilityId: number) {
 
 async function addTimeBlock(doctorId: number, data: TimeBlockInput) {
   await getById(doctorId);
+
+  const date = new Date(data.date);
+  const startOfDay = new Date(data.date);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(data.date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const confirmedAppointments = await prisma.appointment.findMany({
+    where: { doctorId, date: { gte: startOfDay, lte: endOfDay }, status: "CONFIRMED" },
+  });
+
+  const blockStart = toMinutes(data.startTime);
+  const blockEnd = toMinutes(data.endTime);
+  const conflict = confirmedAppointments.find((a) =>
+    rangesOverlap(blockStart, blockEnd, toMinutes(a.startTime), toMinutes(a.endTime))
+  );
+  if (conflict) {
+    throw ApiError.conflict(
+      `Khung giờ này đang có lịch hẹn đã xác nhận (${conflict.startTime}-${conflict.endTime}), vui lòng hủy lịch hẹn đó trước khi chặn`
+    );
+  }
+
   return prisma.doctorTimeBlock.create({
-    data: { ...data, date: new Date(data.date), doctorId },
+    data: { ...data, date, doctorId },
   });
 }
 
