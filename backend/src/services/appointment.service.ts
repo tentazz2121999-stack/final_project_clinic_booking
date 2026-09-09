@@ -13,6 +13,7 @@ const appointmentInclude = {
     },
   },
   patient: { select: { id: true, fullName: true, phone: true, email: true } },
+  review: true,
 };
 
 interface CreateAppointmentInput {

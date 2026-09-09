@@ -12,12 +12,18 @@ import {
   TextField,
   Button,
   Alert,
+  Rating,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
 } from "@mui/material";
 import doctorService from "../../api/doctorService";
 import appointmentService from "../../api/appointmentService";
 import { useAuth } from "../../context/AuthContext";
 import { getErrorMessage } from "../../utils/getErrorMessage";
 import { Doctor, Slot } from "../../types/doctor";
+import { Review } from "../../types/appointment";
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -30,6 +36,7 @@ export default function DoctorDetailPage() {
 
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   const [date, setDate] = useState(todayISO());
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -45,6 +52,7 @@ export default function DoctorDetailPage() {
       .getById(id!)
       .then(({ data }) => setDoctor(data.data))
       .catch(() => setNotFound(true));
+    doctorService.getReviews(id!).then(({ data }) => setReviews(data.data));
   }, [id]);
 
   useEffect(() => {
@@ -121,6 +129,12 @@ export default function DoctorDetailPage() {
                   {doctor.user.fullName}
                 </Typography>
                 <Chip label={doctor.specialty.name} size="small" color="primary" sx={{ mt: 0.5 }} />
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+                  <Rating value={Number(doctor.avgRating) || 0} precision={0.5} readOnly size="small" />
+                  <Typography variant="body2" color="text.secondary">
+                    ({doctor.reviewCount} đánh giá)
+                  </Typography>
+                </Box>
               </Box>
             </Box>
 
@@ -133,6 +147,36 @@ export default function DoctorDetailPage() {
             <Typography variant="body2" color="text.secondary">
               Giá khám: {Number(doctor.consultationFee).toLocaleString("vi-VN")}đ / lượt
             </Typography>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+              Đánh giá từ bệnh nhân
+            </Typography>
+
+            {reviews.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                Chưa có đánh giá nào.
+              </Typography>
+            ) : (
+              <List dense>
+                {reviews.map((r) => (
+                  <ListItem key={r.id} disableGutters>
+                    <ListItemText
+                      primary={
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <Rating value={r.rating} readOnly size="small" />
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {r.patient?.fullName}
+                          </Typography>
+                        </Box>
+                      }
+                      secondary={r.comment}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            )}
 
             <Link component={RouterLink} to="/doctors" sx={{ mt: 3, display: "inline-block" }}>
               ← Quay lại danh sách

@@ -12,3 +12,8 @@ export const createAppointmentSchema = yup.object({
     .required("Giờ khám là bắt buộc"),
   reason: yup.string().nullable(),
 });
+
+export const reviewSchema = yup.object({
+  rating: yup.number().integer().min(1).max(5).required("Đánh giá (1-5 sao) là bắt buộc"),
+  comment: yup.string().nullable(),
+});

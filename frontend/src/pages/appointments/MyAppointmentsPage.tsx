@@ -12,6 +12,12 @@ import {
   Button,
   Chip,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Rating,
+  TextField,
 } from "@mui/material";
 import appointmentService from "../../api/appointmentService";
 import { useAuth } from "../../context/AuthContext";
@@ -29,6 +35,10 @@ export default function MyAppointmentsPage() {
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
+
+  const [reviewTarget, setReviewTarget] = useState<Appointment | null>(null);
+  const [rating, setRating] = useState<number | null>(5);
+  const [comment, setComment] = useState("");
 
   const load = () => {
     appointmentService.listMine().then(({ data }) => setAppointments(data.items));
@@ -49,6 +59,24 @@ export default function MyAppointmentsPage() {
       load();
     } catch (err) {
       setErrorMsg(getErrorMessage(err, "Hủy lịch hẹn thất bại"));
+    }
+  };
+
+  const openReview = (appointment: Appointment) => {
+    setReviewTarget(appointment);
+    setRating(5);
+    setComment("");
+  };
+
+  const submitReview = async () => {
+    if (!reviewTarget || !rating) return;
+    setErrorMsg("");
+    try {
+      await appointmentService.review(reviewTarget.id, { rating, comment: comment || undefined });
+      setReviewTarget(null);
+      load();
+    } catch (err) {
+      setErrorMsg(getErrorMessage(err, "Gửi đánh giá thất bại"));
     }
   };
 
@@ -103,12 +131,44 @@ export default function MyAppointmentsPage() {
                       Hủy lịch
                     </Button>
                   )}
+                  {a.status === "COMPLETED" && !a.review && (
+                    <Button size="small" onClick={() => openReview(a)}>
+                      Đánh giá
+                    </Button>
+                  )}
+                  {a.review && <Chip size="small" label="Đã đánh giá" />}
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </Paper>
+
+      <Dialog open={!!reviewTarget} onClose={() => setReviewTarget(null)} fullWidth maxWidth="xs">
+        <DialogTitle>Đánh giá bác sĩ</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              Bạn hài lòng với buổi khám như thế nào?
+            </Typography>
+            <Rating value={rating} onChange={(_e, v) => setRating(v)} />
+          </Box>
+          <TextField
+            label="Nhận xét (không bắt buộc)"
+            fullWidth
+            multiline
+            rows={3}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setReviewTarget(null)}>Hủy</Button>
+          <Button variant="contained" onClick={submitReview}>
+            Gửi đánh giá
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

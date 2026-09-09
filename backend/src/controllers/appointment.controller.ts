@@ -1,5 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler";
 import appointmentService from "../services/appointment.service";
+import reviewService from "../services/review.service";
 
 const create = asyncHandler(async (req, res) => {
   const appointment = await appointmentService.create(req.user!.id, req.body);
@@ -16,4 +17,9 @@ const cancel = asyncHandler(async (req, res) => {
   res.json({ success: true, data: appointment });
 });
 
-export default { create, listMine, cancel };
+const createReview = asyncHandler(async (req, res) => {
+  const review = await reviewService.createReview(Number(req.params.id), req.user!.id, req.body);
+  res.status(201).json({ success: true, data: review });
+});
+
+export default { create, listMine, cancel, createReview };

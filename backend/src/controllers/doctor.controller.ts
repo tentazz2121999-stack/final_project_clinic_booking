@@ -1,5 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler";
 import doctorService from "../services/doctor.service";
+import reviewService from "../services/review.service";
 import { ApiError } from "../utils/apiError";
 
 const list = asyncHandler(async (req, res) => {
@@ -20,4 +21,9 @@ const getAvailableSlots = asyncHandler(async (req, res) => {
   res.json({ success: true, data: result });
 });
 
-export default { list, getById, getAvailableSlots };
+const getReviews = asyncHandler(async (req, res) => {
+  const reviews = await reviewService.listByDoctor(Number(req.params.id));
+  res.json({ success: true, data: reviews });
+});
+
+export default { list, getById, getAvailableSlots, getReviews };
