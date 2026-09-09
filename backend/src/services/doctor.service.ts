@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import prisma from "../config/prisma";
 import { ApiError } from "../utils/apiError";
 import { buildPagination, buildMeta } from "../utils/pagination";
-import { computeAvailableSlots } from "../utils/slotCalculator";
+import { computeAvailableSlots, toMinutes } from "../utils/slotCalculator";
 
 const doctorInclude = {
   user: { select: { id: true, fullName: true, phone: true } },
@@ -53,6 +53,10 @@ async function getAvailableSlots(doctorId: number, dateStr: string) {
   const endOfDay = new Date(dateStr);
   endOfDay.setHours(23, 59, 59, 999);
 
+  // Ngày đã qua hoàn toàn (trước hôm nay) -> không còn slot nào để đặt, khỏi cần truy vấn thêm.
+  const now = new Date();
+  if (endOfDay < now) return { date: dateStr, slots: [] };
+
   const [blocks, bookedAppointments] = await Promise.all([
     prisma.doctorTimeBlock.findMany({
       where: { doctorId, date: { gte: startOfDay, lte: endOfDay } },
@@ -66,12 +70,18 @@ async function getAvailableSlots(doctorId: number, dateStr: string) {
     }),
   ]);
 
-  const slots = computeAvailableSlots({
+  let slots = computeAvailableSlots({
     availabilities,
     blocks,
     bookedAppointments,
     slotDurationMinutes: doctor.slotDurationMinutes,
   });
+
+  // Nếu là hôm nay, loại bỏ luôn những slot đã qua giờ hiện tại — không cho đặt lịch vào quá khứ.
+  if (now >= startOfDay && now <= endOfDay) {
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    slots = slots.filter((s) => toMinutes(s.startTime) > nowMinutes);
+  }
 
   return { date: dateStr, slots };
 }

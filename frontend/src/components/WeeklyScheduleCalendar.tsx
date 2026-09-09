@@ -11,8 +11,7 @@ const DAY_COLUMNS = [
   { value: 0, label: "Chủ Nhật" },
 ];
 
-const HOUR_HEIGHT = 32; // px cho mỗi giờ trên lịch
-
+const HOUR_HEIGHT = 32;
 function toMinutes(hhmm: string) {
   const [h, m] = hhmm.split(":").map(Number);
   return h * 60 + m;
