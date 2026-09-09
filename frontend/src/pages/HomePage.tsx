@@ -30,6 +30,9 @@ export default function HomePage() {
               <Button variant="contained" onClick={() => navigate("/doctors")}>
                 Tìm bác sĩ
               </Button>
+              <Button variant="outlined" onClick={() => navigate("/profile")}>
+                Hồ sơ của tôi
+              </Button>
               {user.role === "PATIENT" && (
                 <Button variant="outlined" onClick={() => navigate("/appointments/me")}>
                   Lịch hẹn của tôi
