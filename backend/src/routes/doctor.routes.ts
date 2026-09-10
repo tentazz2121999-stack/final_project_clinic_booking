@@ -3,7 +3,7 @@ import doctorController from "../controllers/doctor.controller";
 import authenticate from "../middleware/authenticate";
 import authorize from "../middleware/authorize";
 import validate from "../middleware/validate";
-import { availabilitySchema, timeBlockSchema } from "../schemas/doctor.schema";
+import { availabilitySchema, timeBlockSchema, createDoctorSchema, updateDoctorSchema } from "../schemas/doctor.schema";
 
 const router = express.Router();
 
@@ -12,6 +12,11 @@ router.get("/me/profile", authenticate, authorize("DOCTOR"), doctorController.ge
 router.get("/:id", doctorController.getById);
 router.get("/:id/reviews", doctorController.getReviews);
 router.get("/:id/slots", doctorController.getAvailableSlots);
+
+// Quản lý bác sĩ - chỉ Admin
+router.post("/", authenticate, authorize("ADMIN"), validate(createDoctorSchema), doctorController.create);
+router.put("/:id", authenticate, authorize("ADMIN"), validate(updateDoctorSchema), doctorController.update);
+router.delete("/:id", authenticate, authorize("ADMIN"), doctorController.remove);
 
 router.post(
   "/:id/availability",

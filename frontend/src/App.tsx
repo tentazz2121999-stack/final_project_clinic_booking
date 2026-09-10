@@ -9,6 +9,10 @@ import ProfilePage from "./pages/ProfilePage";
 import DoctorSchedulePage from "./pages/doctor/DoctorSchedulePage";
 import DoctorAppointmentsPage from "./pages/doctor/DoctorAppointmentsPage";
 import RequireRole from "./components/RequireRole";
+import AdminStatsPage from "./pages/admin/AdminStatsPage";
+import AdminDoctorsPage from "./pages/admin/AdminDoctorsPage";
+import AdminSpecialtiesPage from "./pages/admin/AdminSpecialtiesPage";
+import AdminAppointmentsPage from "./pages/admin/AdminAppointmentsPage";
 
 export default function App() {
   return (
@@ -40,6 +44,38 @@ export default function App() {
         element={
           <RequireRole role="DOCTOR">
             <DoctorAppointmentsPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <RequireRole role="ADMIN">
+            <AdminStatsPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/admin/doctors"
+        element={
+          <RequireRole role="ADMIN">
+            <AdminDoctorsPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/admin/specialties"
+        element={
+          <RequireRole role="ADMIN">
+            <AdminSpecialtiesPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/admin/appointments"
+        element={
+          <RequireRole role="ADMIN">
+            <AdminAppointmentsPage />
           </RequireRole>
         }
       />

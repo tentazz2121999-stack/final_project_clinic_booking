@@ -41,6 +41,21 @@ const getMyProfile = asyncHandler(async (req, res) => {
   res.json({ success: true, data: doctor });
 });
 
+const create = asyncHandler(async (req, res) => {
+  const doctor = await doctorService.create(req.body);
+  res.status(201).json({ success: true, data: doctor });
+});
+
+const update = asyncHandler(async (req, res) => {
+  const doctor = await doctorService.update(Number(req.params.id), req.body);
+  res.json({ success: true, data: doctor });
+});
+
+const remove = asyncHandler(async (req, res) => {
+  await doctorService.remove(Number(req.params.id));
+  res.json({ success: true, message: "Đã xóa bác sĩ" });
+});
+
 const addAvailability = asyncHandler(async (req, res) => {
   const doctorId = Number(req.params.id);
   await assertDoctorOwnerOrAdmin(req, doctorId);
@@ -80,6 +95,9 @@ export default {
   getAvailableSlots,
   getReviews,
   getMyProfile,
+  create,
+  update,
+  remove,
   addAvailability,
   removeAvailability,
   addTimeBlock,

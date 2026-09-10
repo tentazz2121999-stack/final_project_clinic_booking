@@ -1,4 +1,4 @@
-import { Appointment, AppointmentStatus, Prisma } from "@prisma/client";
+import { AppointmentStatus, Prisma } from "@prisma/client";
 import prisma from "../config/prisma";
 import { ApiError } from "../utils/apiError";
 import env from "../config/env";
@@ -33,6 +33,14 @@ interface ListQuery {
 interface DoctorListQuery {
   date?: string;
   status?: string;
+}
+
+interface AdminListQuery {
+  page?: string;
+  limit?: string;
+  status?: string;
+  doctorId?: string;
+  date?: string;
 }
 
 async function create(patientId: number, data: CreateAppointmentInput) {
@@ -103,35 +111,63 @@ async function listMineAsDoctor(doctorProfileId: number, query: DoctorListQuery)
   });
 }
 
+async function listAll(query: AdminListQuery) {
+  const { page, limit, skip } = buildPagination(query);
+  const where: Prisma.AppointmentWhereInput = {};
+  if (query.doctorId) where.doctorId = Number(query.doctorId);
+  if (query.status) where.status = query.status as AppointmentStatus;
+  if (query.date) {
+    const start = new Date(query.date);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(query.date);
+    end.setHours(23, 59, 59, 999);
+    where.date = { gte: start, lte: end };
+  }
+
+  const [items, total] = await Promise.all([
+    prisma.appointment.findMany({
+      where,
+      include: appointmentInclude,
+      orderBy: [{ date: "desc" }, { startTime: "desc" }],
+      skip,
+      take: limit,
+    }),
+    prisma.appointment.count({ where }),
+  ]);
+
+  return { items, meta: buildMeta({ page, limit, total }) };
+}
+
 async function getById(id: number) {
   const appointment = await prisma.appointment.findUnique({ where: { id }, include: appointmentInclude });
   if (!appointment) throw ApiError.notFound("Không tìm thấy lịch hẹn");
   return appointment;
 }
 
-function assertOwnedByPatient(appointment: Appointment, patientId: number) {
-  if (appointment.patientId !== patientId) {
+async function cancel(id: number, user: TokenPayload) {
+  const appointment = await getById(id);
+
+  if (user.role === "PATIENT" && appointment.patientId !== user.id) {
     throw ApiError.forbidden("Bạn không có quyền thao tác trên lịch hẹn này");
   }
-}
-
-async function cancel(id: number, patientId: number) {
-  const appointment = await getById(id);
-  assertOwnedByPatient(appointment, patientId);
+  if (user.role === "DOCTOR") throw ApiError.forbidden();
 
   if (appointment.status !== "CONFIRMED") {
     throw ApiError.conflict("Chỉ có thể hủy lịch hẹn đang ở trạng thái đã xác nhận");
   }
 
-  const appointmentDateTime = new Date(appointment.date);
-  const [h, m] = appointment.startTime.split(":").map(Number);
-  appointmentDateTime.setHours(h, m, 0, 0);
+  // Bệnh nhân chỉ được hủy trước tối thiểu N giờ; Admin hủy hộ (VD bệnh nhân gọi điện) thì không bị giới hạn này.
+  if (user.role === "PATIENT") {
+    const appointmentDateTime = new Date(appointment.date);
+    const [h, m] = appointment.startTime.split(":").map(Number);
+    appointmentDateTime.setHours(h, m, 0, 0);
 
-  const hoursUntilAppointment = (appointmentDateTime.getTime() - Date.now()) / (1000 * 60 * 60);
-  if (hoursUntilAppointment < env.minCancelHoursBefore) {
-    throw ApiError.badRequest(
-      `Chỉ có thể hủy lịch hẹn trước tối thiểu ${env.minCancelHoursBefore} giờ so với giờ khám`
-    );
+    const hoursUntilAppointment = (appointmentDateTime.getTime() - Date.now()) / (1000 * 60 * 60);
+    if (hoursUntilAppointment < env.minCancelHoursBefore) {
+      throw ApiError.badRequest(
+        `Chỉ có thể hủy lịch hẹn trước tối thiểu ${env.minCancelHoursBefore} giờ so với giờ khám`
+      );
+    }
   }
 
   return prisma.appointment.update({
@@ -159,4 +195,4 @@ async function complete(id: number, user: TokenPayload) {
   });
 }
 
-export default { create, listMineAsPatient, listMineAsDoctor, getById, cancel, complete };
+export default { create, listMineAsPatient, listMineAsDoctor, listAll, getById, cancel, complete };

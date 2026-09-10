@@ -19,9 +19,34 @@ interface TimeBlockPayload {
   reason?: string;
 }
 
+interface CreateDoctorPayload {
+  email: string;
+  password: string;
+  fullName: string;
+  phone?: string;
+  specialtyId: number;
+  bio?: string;
+  experienceYears?: number;
+  consultationFee?: number;
+  slotDurationMinutes?: number;
+}
+
+interface UpdateDoctorPayload {
+  fullName?: string;
+  phone?: string;
+  specialtyId?: number;
+  bio?: string;
+  experienceYears?: number;
+  consultationFee?: number;
+  slotDurationMinutes?: number;
+}
+
 const doctorService = {
   list: (params?: ListParams) => axiosClient.get("/doctors", { params }),
   getById: (id: number | string) => axiosClient.get(`/doctors/${id}`),
+  create: (payload: CreateDoctorPayload) => axiosClient.post("/doctors", payload),
+  update: (id: number, payload: UpdateDoctorPayload) => axiosClient.put(`/doctors/${id}`, payload),
+  remove: (id: number) => axiosClient.delete(`/doctors/${id}`),
   getSlots: (id: number | string, date: string) =>
     axiosClient.get(`/doctors/${id}/slots`, { params: { date } }),
   getReviews: (id: number | string) => axiosClient.get(`/doctors/${id}/reviews`),

@@ -1,5 +1,27 @@
 import * as yup from "yup";
 
+export const createDoctorSchema = yup.object({
+  email: yup.string().email("Email không hợp lệ").required("Email là bắt buộc"),
+  password: yup.string().min(6, "Mật khẩu tối thiểu 6 ký tự").required("Mật khẩu là bắt buộc"),
+  fullName: yup.string().required("Họ tên là bắt buộc"),
+  phone: yup.string().nullable(),
+  specialtyId: yup.number().integer().required("Chuyên khoa là bắt buộc"),
+  bio: yup.string().nullable(),
+  experienceYears: yup.number().integer().min(0).default(0),
+  consultationFee: yup.number().min(0).default(0),
+  slotDurationMinutes: yup.number().integer().min(5).default(30),
+});
+
+export const updateDoctorSchema = yup.object({
+  fullName: yup.string(),
+  phone: yup.string().nullable(),
+  specialtyId: yup.number().integer(),
+  bio: yup.string().nullable(),
+  experienceYears: yup.number().integer().min(0),
+  consultationFee: yup.number().min(0),
+  slotDurationMinutes: yup.number().integer().min(5),
+});
+
 export const availabilitySchema = yup.object({
   dayOfWeek: yup.number().integer().min(0).max(6).required(),
   startTime: yup

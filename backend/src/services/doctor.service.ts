@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { Prisma } from "@prisma/client";
 import prisma from "../config/prisma";
 import { ApiError } from "../utils/apiError";
@@ -84,6 +85,100 @@ async function getAvailableSlots(doctorId: number, dateStr: string) {
   }
 
   return { date: dateStr, slots };
+}
+
+interface CreateDoctorInput {
+  email: string;
+  password: string;
+  fullName: string;
+  phone?: string | null;
+  specialtyId: number;
+  bio?: string | null;
+  experienceYears?: number;
+  consultationFee?: number;
+  slotDurationMinutes?: number;
+}
+
+interface UpdateDoctorInput {
+  fullName?: string;
+  phone?: string | null;
+  specialtyId?: number;
+  bio?: string | null;
+  experienceYears?: number;
+  consultationFee?: number;
+  slotDurationMinutes?: number;
+}
+
+async function create(data: CreateDoctorInput) {
+  const existing = await prisma.user.findUnique({ where: { email: data.email } });
+  if (existing) throw ApiError.conflict("Email đã được sử dụng");
+
+  const hashedPassword = await bcrypt.hash(data.password, 10);
+
+  return prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({
+      data: {
+        email: data.email,
+        password: hashedPassword,
+        fullName: data.fullName,
+        phone: data.phone || null,
+        role: "DOCTOR",
+      },
+    });
+
+    return tx.doctorProfile.create({
+      data: {
+        userId: user.id,
+        specialtyId: data.specialtyId,
+        bio: data.bio || null,
+        experienceYears: data.experienceYears || 0,
+        consultationFee: data.consultationFee || 0,
+        slotDurationMinutes: data.slotDurationMinutes || 30,
+      },
+      include: doctorInclude,
+    });
+  });
+}
+
+async function update(id: number, data: UpdateDoctorInput) {
+  const doctor = await getById(id);
+
+  if (data.fullName !== undefined || data.phone !== undefined) {
+    await prisma.user.update({
+      where: { id: doctor.userId },
+      data: {
+        ...(data.fullName !== undefined ? { fullName: data.fullName } : {}),
+        ...(data.phone !== undefined ? { phone: data.phone } : {}),
+      },
+    });
+  }
+
+  return prisma.doctorProfile.update({
+    where: { id },
+    data: {
+      ...(data.specialtyId !== undefined ? { specialtyId: data.specialtyId } : {}),
+      ...(data.bio !== undefined ? { bio: data.bio } : {}),
+      ...(data.experienceYears !== undefined ? { experienceYears: data.experienceYears } : {}),
+      ...(data.consultationFee !== undefined ? { consultationFee: data.consultationFee } : {}),
+      ...(data.slotDurationMinutes !== undefined ? { slotDurationMinutes: data.slotDurationMinutes } : {}),
+    },
+    include: doctorInclude,
+  });
+}
+
+async function remove(id: number) {
+  const doctor = await getById(id);
+  try {
+    await prisma.$transaction([
+      prisma.doctorProfile.delete({ where: { id } }),
+      prisma.user.delete({ where: { id: doctor.userId } }),
+    ]);
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2003") {
+      throw ApiError.conflict("Không thể xóa bác sĩ đang có lịch hẹn hoặc đánh giá trong hệ thống");
+    }
+    throw err;
+  }
 }
 
 interface AvailabilityInput {
@@ -181,6 +276,9 @@ export default {
   list,
   getById,
   getByUserId,
+  create,
+  update,
+  remove,
   getAvailableSlots,
   addAvailability,
   removeAvailability,

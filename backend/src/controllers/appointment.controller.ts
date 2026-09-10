@@ -23,8 +23,13 @@ const listMine = asyncHandler(async (req, res) => {
 });
 
 const cancel = asyncHandler(async (req, res) => {
-  const appointment = await appointmentService.cancel(Number(req.params.id), req.user!.id);
+  const appointment = await appointmentService.cancel(Number(req.params.id), req.user!);
   res.json({ success: true, data: appointment });
+});
+
+const listAll = asyncHandler(async (req, res) => {
+  const result = await appointmentService.listAll(req.query as any);
+  res.json({ success: true, ...result });
 });
 
 const complete = asyncHandler(async (req, res) => {
@@ -37,4 +42,4 @@ const createReview = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, data: review });
 });
 
-export default { create, listMine, cancel, complete, createReview };
+export default { create, listMine, listAll, cancel, complete, createReview };

@@ -48,6 +48,11 @@ export default function HomePage() {
                   </Button>
                 </>
               )}
+              {user.role === "ADMIN" && (
+                <Button variant="outlined" onClick={() => navigate("/admin")}>
+                  Trang quản trị
+                </Button>
+              )}
               <Button variant="outlined" color="error" onClick={handleLogout}>
                 Đăng xuất
               </Button>
