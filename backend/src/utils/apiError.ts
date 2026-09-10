@@ -23,4 +23,13 @@ export class ApiError extends Error {
   static conflict(message: string) {
     return new ApiError(409, message);
   }
+  static tooManyRequests(message: string) {
+    return new ApiError(429, message);
+  }
+  static serviceUnavailable(message: string) {
+    return new ApiError(503, message);
+  }
+  static gatewayTimeout(message: string) {
+    return new ApiError(504, message);
+  }
 }

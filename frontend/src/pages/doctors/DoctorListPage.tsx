@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import {
   Box,
   Grid,
@@ -17,8 +17,9 @@ import specialtyService from "../../api/specialtyService";
 import { Doctor, Meta, Specialty } from "../../types/doctor";
 
 export default function DoctorListPage() {
+  const [searchParams] = useSearchParams();
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
-  const [specialtyId, setSpecialtyId] = useState("");
+  const [specialtyId, setSpecialtyId] = useState(searchParams.get("specialtyId") || "");
   const [page, setPage] = useState(1);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [meta, setMeta] = useState<Meta>({ page: 1, limit: 6, total: 0, totalPages: 1 });
