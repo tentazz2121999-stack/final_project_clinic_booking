@@ -47,3 +47,17 @@ export interface Slot {
   startTime: string;
   endTime: string;
 }
+
+export interface MonthlyScheduleDay {
+  date: string;
+  dayOfWeek: number;
+  isWorkingDay: boolean;
+  appointmentCount: number;
+  hasBlock: boolean;
+}
+
+export interface MonthlySchedule {
+  year: number;
+  month: number;
+  days: MonthlyScheduleDay[];
+}

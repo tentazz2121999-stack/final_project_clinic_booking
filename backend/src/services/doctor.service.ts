@@ -194,6 +194,60 @@ interface TimeBlockInput {
   reason?: string | null;
 }
 
+async function getMonthlySchedule(doctorId: number, year: number, month: number) {
+  const doctor = await prisma.doctorProfile.findUnique({
+    where: { id: doctorId },
+    include: { availabilities: true },
+  });
+  if (!doctor) throw ApiError.notFound("Không tìm thấy bác sĩ");
+
+  const workingDaysOfWeek = new Set(doctor.availabilities.map((a) => a.dayOfWeek));
+
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const firstDayKey = `${year}-${pad(month)}-01`;
+  const lastDayKey = `${year}-${pad(month)}-${pad(daysInMonth)}`;
+
+  const startOfMonth = new Date(firstDayKey);
+  const endOfMonth = new Date(lastDayKey);
+  endOfMonth.setHours(23, 59, 59, 999);
+
+  const [appointments, blocks] = await Promise.all([
+    prisma.appointment.findMany({
+      where: { doctorId, date: { gte: startOfMonth, lte: endOfMonth }, status: { not: "CANCELLED" } },
+      select: { date: true },
+    }),
+    prisma.doctorTimeBlock.findMany({
+      where: { doctorId, date: { gte: startOfMonth, lte: endOfMonth } },
+      select: { date: true },
+    }),
+  ]);
+
+  const toDateKey = (d: Date) => d.toISOString().slice(0, 10);
+
+  const appointmentCountByDate = appointments.reduce<Record<string, number>>((acc, a) => {
+    const key = toDateKey(a.date);
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+  const blockedDates = new Set(blocks.map((b) => toDateKey(b.date)));
+
+  const days = [];
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateKey = `${year}-${pad(month)}-${pad(day)}`;
+    const dayOfWeek = new Date(dateKey).getDay();
+    days.push({
+      date: dateKey,
+      dayOfWeek,
+      isWorkingDay: workingDaysOfWeek.has(dayOfWeek),
+      appointmentCount: appointmentCountByDate[dateKey] || 0,
+      hasBlock: blockedDates.has(dateKey),
+    });
+  }
+
+  return { year, month, days };
+}
+
 async function getByUserId(userId: number) {
   const doctor = await prisma.doctorProfile.findUnique({
     where: { userId },
@@ -280,6 +334,7 @@ export default {
   update,
   remove,
   getAvailableSlots,
+  getMonthlySchedule,
   addAvailability,
   removeAvailability,
   addTimeBlock,

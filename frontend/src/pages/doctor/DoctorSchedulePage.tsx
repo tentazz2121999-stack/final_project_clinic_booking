@@ -17,8 +17,9 @@ import {
 } from "@mui/material";
 import doctorService from "../../api/doctorService";
 import { getErrorMessage } from "../../utils/getErrorMessage";
-import { Doctor, TimeBlock } from "../../types/doctor";
+import { Doctor, TimeBlock, MonthlyScheduleDay } from "../../types/doctor";
 import WeeklyScheduleCalendar from "../../components/WeeklyScheduleCalendar";
+import MonthlyScheduleCalendar from "../../components/MonthlyScheduleCalendar";
 
 const DAYS = [
   { value: 1, label: "Thứ Hai" },
@@ -43,6 +44,11 @@ export default function DoctorSchedulePage() {
   const [blocks, setBlocks] = useState<TimeBlock[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const now = new Date();
+  const [viewYear, setViewYear] = useState(now.getFullYear());
+  const [viewMonth, setViewMonth] = useState(now.getMonth() + 1);
+  const [monthDays, setMonthDays] = useState<MonthlyScheduleDay[]>([]);
+
   const [newSlot, setNewSlot] = useState({ dayOfWeek: 1, startTime: "08:00", endTime: "12:00" });
   const [newBlock, setNewBlock] = useState({ date: todayISO(), startTime: "08:00", endTime: "09:00", reason: "" });
 
@@ -56,6 +62,31 @@ export default function DoctorSchedulePage() {
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    if (!doctor) return;
+    doctorService
+      .getMonthlySchedule(doctor.id, viewYear, viewMonth)
+      .then(({ data }) => setMonthDays(data.data.days));
+  }, [doctor, viewYear, viewMonth]);
+
+  const goPrevMonth = () => {
+    if (viewMonth === 1) {
+      setViewYear((y) => y - 1);
+      setViewMonth(12);
+    } else {
+      setViewMonth((m) => m - 1);
+    }
+  };
+
+  const goNextMonth = () => {
+    if (viewMonth === 12) {
+      setViewYear((y) => y + 1);
+      setViewMonth(1);
+    } else {
+      setViewMonth((m) => m + 1);
+    }
+  };
 
   const handleAddAvailability = async () => {
     if (!doctor) return;
@@ -112,6 +143,26 @@ export default function DoctorSchedulePage() {
           Lịch làm việc theo tuần
         </Typography>
         <WeeklyScheduleCalendar availabilities={availabilities} />
+      </Paper>
+
+      <Paper sx={{ p: 3, mb: 3 }} variant="outlined">
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+            Lịch làm việc theo tháng
+          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Button size="small" onClick={goPrevMonth}>
+              ← Tháng trước
+            </Button>
+            <Typography variant="body2" sx={{ minWidth: 90, textAlign: "center" }}>
+              Tháng {viewMonth}/{viewYear}
+            </Typography>
+            <Button size="small" onClick={goNextMonth}>
+              Tháng sau →
+            </Button>
+          </Box>
+        </Box>
+        <MonthlyScheduleCalendar days={monthDays} />
       </Paper>
 
       <Grid container spacing={3}>

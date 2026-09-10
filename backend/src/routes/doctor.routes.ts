@@ -12,6 +12,7 @@ router.get("/me/profile", authenticate, authorize("DOCTOR"), doctorController.ge
 router.get("/:id", doctorController.getById);
 router.get("/:id/reviews", doctorController.getReviews);
 router.get("/:id/slots", doctorController.getAvailableSlots);
+router.get("/:id/schedule/month", authenticate, authorize("DOCTOR", "ADMIN"), doctorController.getMonthlySchedule);
 
 // Quản lý bác sĩ - chỉ Admin
 router.post("/", authenticate, authorize("ADMIN"), validate(createDoctorSchema), doctorController.create);

@@ -49,6 +49,8 @@ const doctorService = {
   remove: (id: number) => axiosClient.delete(`/doctors/${id}`),
   getSlots: (id: number | string, date: string) =>
     axiosClient.get(`/doctors/${id}/slots`, { params: { date } }),
+  getMonthlySchedule: (id: number | string, year: number, month: number) =>
+    axiosClient.get(`/doctors/${id}/schedule/month`, { params: { year, month } }),
   getReviews: (id: number | string) => axiosClient.get(`/doctors/${id}/reviews`),
   getMyProfile: () => axiosClient.get("/doctors/me/profile"),
   addAvailability: (doctorId: number, data: AvailabilityPayload) =>

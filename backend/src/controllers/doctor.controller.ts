@@ -31,6 +31,18 @@ const getAvailableSlots = asyncHandler(async (req, res) => {
   res.json({ success: true, data: result });
 });
 
+const getMonthlySchedule = asyncHandler(async (req, res) => {
+  const doctorId = Number(req.params.id);
+  await assertDoctorOwnerOrAdmin(req, doctorId);
+  const year = Number(req.query.year);
+  const month = Number(req.query.month);
+  if (!year || !month || month < 1 || month > 12) {
+    throw ApiError.badRequest("Vui lòng cung cấp ?year=YYYY&month=1-12 hợp lệ");
+  }
+  const result = await doctorService.getMonthlySchedule(doctorId, year, month);
+  res.json({ success: true, data: result });
+});
+
 const getReviews = asyncHandler(async (req, res) => {
   const reviews = await reviewService.listByDoctor(Number(req.params.id));
   res.json({ success: true, data: reviews });
@@ -93,6 +105,7 @@ export default {
   list,
   getById,
   getAvailableSlots,
+  getMonthlySchedule,
   getReviews,
   getMyProfile,
   create,
