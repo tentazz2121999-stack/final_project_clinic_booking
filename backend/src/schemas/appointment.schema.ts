@@ -11,6 +11,7 @@ export const createAppointmentSchema = yup.object({
     .matches(/^([01]\d|2[0-3]):[0-5]\d$/, "Định dạng giờ phải là HH:mm")
     .required("Giờ khám là bắt buộc"),
   reason: yup.string().nullable(),
+  patientId: yup.number().integer().nullable(), // chỉ dùng khi Admin đặt lịch hộ
 });
 
 export const reviewSchema = yup.object({

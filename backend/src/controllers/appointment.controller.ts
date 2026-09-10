@@ -5,7 +5,7 @@ import doctorService from "../services/doctor.service";
 import { ApiError } from "../utils/apiError";
 
 const create = asyncHandler(async (req, res) => {
-  const appointment = await appointmentService.create(req.user!.id, req.body);
+  const appointment = await appointmentService.create(req.user!, req.body);
   res.status(201).json({ success: true, data: appointment });
 });
 

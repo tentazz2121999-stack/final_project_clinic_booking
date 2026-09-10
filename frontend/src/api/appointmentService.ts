@@ -5,6 +5,7 @@ interface CreateAppointmentPayload {
   date: string;
   startTime: string;
   reason?: string;
+  patientId?: number;
 }
 
 interface ReviewPayload {

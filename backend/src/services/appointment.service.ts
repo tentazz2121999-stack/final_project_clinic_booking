@@ -22,6 +22,7 @@ interface CreateAppointmentInput {
   date: string;
   startTime: string;
   reason?: string | null;
+  patientId?: number;
 }
 
 interface ListQuery {
@@ -43,7 +44,19 @@ interface AdminListQuery {
   date?: string;
 }
 
-async function create(patientId: number, data: CreateAppointmentInput) {
+async function create(user: TokenPayload, data: CreateAppointmentInput) {
+  let patientId = user.id;
+
+  // Admin đặt lịch hộ (VD bệnh nhân gọi điện) — phải chỉ định rõ patientId, và người đó phải là tài khoản PATIENT thật.
+  if (user.role === "ADMIN") {
+    if (!data.patientId) throw ApiError.badRequest("Vui lòng chọn bệnh nhân để đặt lịch hộ");
+    const patient = await prisma.user.findUnique({ where: { id: data.patientId } });
+    if (!patient || patient.role !== "PATIENT") {
+      throw ApiError.notFound("Không tìm thấy bệnh nhân");
+    }
+    patientId = patient.id;
+  }
+
   const doctor = await prisma.doctorProfile.findUnique({ where: { id: data.doctorId } });
   if (!doctor) throw ApiError.notFound("Không tìm thấy bác sĩ");
 

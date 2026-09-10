@@ -30,4 +30,23 @@ async function updateProfile(id: number, data: UpdateProfileInput) {
   return publicUser;
 }
 
-export default { getById, updateProfile };
+async function searchPatients(search: string) {
+  if (!search || search.trim().length < 2) return [];
+
+  const patients = await prisma.user.findMany({
+    where: {
+      role: "PATIENT",
+      OR: [
+        { email: { contains: search, mode: "insensitive" } },
+        { fullName: { contains: search, mode: "insensitive" } },
+      ],
+    },
+    select: { id: true, email: true, fullName: true, phone: true },
+    take: 10,
+    orderBy: { fullName: "asc" },
+  });
+
+  return patients;
+}
+
+export default { getById, updateProfile, searchPatients };

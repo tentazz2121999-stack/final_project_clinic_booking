@@ -11,4 +11,9 @@ const updateMe = asyncHandler(async (req, res) => {
   res.json({ success: true, data: user });
 });
 
-export default { getMe, updateMe };
+const searchPatients = asyncHandler(async (req, res) => {
+  const patients = await userService.searchPatients((req.query.search as string) || "");
+  res.json({ success: true, data: patients });
+});
+
+export default { getMe, updateMe, searchPatients };
