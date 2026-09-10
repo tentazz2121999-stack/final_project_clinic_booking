@@ -1,88 +1,73 @@
-import { useNavigate } from "react-router-dom";
-import { Box, Typography, Button, Stack, Paper } from "@mui/material";
+import { useEffect, useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
+import { Box, Typography, Grid, Card, CardContent, Button, Chip, Paper } from "@mui/material";
+import specialtyService from "../api/specialtyService";
+import { Specialty } from "../types/doctor";
 import { useAuth } from "../context/AuthContext";
 
 export default function HomePage() {
-  const { user, isAuthenticated, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+  const [specialties, setSpecialties] = useState<Specialty[]>([]);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
-  };
+  useEffect(() => {
+    specialtyService.getAll().then(({ data }) => setSpecialties(data.data));
+  }, []);
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
-      <Paper sx={{ p: 4, width: 420, textAlign: "center" }} elevation={3}>
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
-          Clinic Booking
+    <Box>
+      <Paper
+        sx={{
+          p: 5,
+          mb: 4,
+          background: "linear-gradient(135deg, #1565c0 0%, #00897b 100%)",
+          color: "white",
+        }}
+      >
+        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+          {isAuthenticated && user ? `Xin chào, ${user.fullName}` : "Đặt lịch khám bệnh nhanh chóng, thuận tiện"}
         </Typography>
-
-        {isAuthenticated && user ? (
-          <>
-            <Typography variant="body1" sx={{ mb: 1 }}>
-              Xin chào, <b>{user.fullName}</b>
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              ({user.email} — vai trò: {user.role})
-            </Typography>
-            <Stack direction="row" spacing={2} sx={{ justifyContent: "center", flexWrap: "wrap" }}>
-              <Button variant="contained" onClick={() => navigate("/doctors")}>
-                Tìm bác sĩ
-              </Button>
-              <Button variant="outlined" onClick={() => navigate("/symptom-checker")}>
-                Gợi ý chuyên khoa (AI)
-              </Button>
-              <Button variant="outlined" onClick={() => navigate("/profile")}>
-                Hồ sơ của tôi
-              </Button>
-              {user.role === "PATIENT" && (
-                <Button variant="outlined" onClick={() => navigate("/appointments/me")}>
-                  Lịch hẹn của tôi
-                </Button>
-              )}
-              {user.role === "DOCTOR" && (
-                <>
-                  <Button variant="outlined" onClick={() => navigate("/doctor/schedule")}>
-                    Lịch làm việc
-                  </Button>
-                  <Button variant="outlined" onClick={() => navigate("/doctor/appointments")}>
-                    Bệnh nhân trong ngày
-                  </Button>
-                </>
-              )}
-              {user.role === "ADMIN" && (
-                <Button variant="outlined" onClick={() => navigate("/admin")}>
-                  Trang quản trị
-                </Button>
-              )}
-              <Button variant="outlined" color="error" onClick={handleLogout}>
-                Đăng xuất
-              </Button>
-            </Stack>
-          </>
-        ) : (
-          <>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Bạn chưa đăng nhập.
-            </Typography>
-            <Stack direction="row" spacing={2} sx={{ justifyContent: "center", flexWrap: "wrap" }}>
-              <Button variant="contained" onClick={() => navigate("/login")}>
-                Đăng nhập
-              </Button>
-              <Button variant="outlined" onClick={() => navigate("/register")}>
-                Đăng ký
-              </Button>
-              <Button variant="text" onClick={() => navigate("/doctors")}>
-                Tìm bác sĩ
-              </Button>
-              <Button variant="text" onClick={() => navigate("/symptom-checker")}>
-                Gợi ý chuyên khoa (AI)
-              </Button>
-            </Stack>
-          </>
-        )}
+        <Typography variant="body1" sx={{ mb: 3, opacity: 0.9 }}>
+          Tìm bác sĩ theo chuyên khoa phù hợp, xem khung giờ trống theo thời gian thực và đặt lịch chỉ trong vài
+          bước.
+        </Typography>
+        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+          <Button component={RouterLink} to="/doctors" variant="contained" color="secondary" size="large">
+            Tìm bác sĩ ngay
+          </Button>
+          <Button
+            component={RouterLink}
+            to="/symptom-checker"
+            variant="outlined"
+            size="large"
+            sx={{ color: "white", borderColor: "white" }}
+          >
+            Chưa biết khám gì? Thử gợi ý chuyên khoa (AI)
+          </Button>
+        </Box>
       </Paper>
+
+      <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+        Chuyên khoa
+      </Typography>
+      <Grid container spacing={2}>
+        {specialties.map((s) => (
+          <Grid key={s.id} size={{ xs: 12, sm: 6, md: 3 }}>
+            <Card
+              variant="outlined"
+              component={RouterLink}
+              to={`/doctors?specialtyId=${s.id}`}
+              sx={{ textDecoration: "none", height: "100%", display: "block" }}
+            >
+              <CardContent>
+                <Chip label={s.name} color="primary" sx={{ mb: 1 }} />
+                <Typography variant="body2" color="text.secondary">
+                  {s.description || "Xem danh sách bác sĩ thuộc chuyên khoa này"}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
     </Box>
   );
 }

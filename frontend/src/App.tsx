@@ -9,6 +9,7 @@ import ProfilePage from "./pages/ProfilePage";
 import DoctorSchedulePage from "./pages/doctor/DoctorSchedulePage";
 import DoctorAppointmentsPage from "./pages/doctor/DoctorAppointmentsPage";
 import RequireRole from "./components/RequireRole";
+import MainLayout from "./components/MainLayout";
 import AdminStatsPage from "./pages/admin/AdminStatsPage";
 import AdminDoctorsPage from "./pages/admin/AdminDoctorsPage";
 import AdminSpecialtiesPage from "./pages/admin/AdminSpecialtiesPage";
@@ -18,35 +19,41 @@ import SymptomCheckerPage from "./pages/SymptomCheckerPage";
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/doctors" element={<DoctorListPage />} />
-      <Route path="/doctors/:id" element={<DoctorDetailPage />} />
-      <Route path="/symptom-checker" element={<SymptomCheckerPage />} />
+      <Route path="/" element={<MainLayout><HomePage /></MainLayout>} />
+      <Route path="/login" element={<MainLayout><LoginPage /></MainLayout>} />
+      <Route path="/register" element={<MainLayout><RegisterPage /></MainLayout>} />
+      <Route path="/doctors" element={<MainLayout><DoctorListPage /></MainLayout>} />
+      <Route path="/doctors/:id" element={<MainLayout><DoctorDetailPage /></MainLayout>} />
+      <Route path="/symptom-checker" element={<MainLayout><SymptomCheckerPage /></MainLayout>} />
       <Route
         path="/appointments/me"
         element={
-          <RequireRole role="PATIENT">
-            <MyAppointmentsPage />
-          </RequireRole>
+          <MainLayout>
+            <RequireRole role="PATIENT">
+              <MyAppointmentsPage />
+            </RequireRole>
+          </MainLayout>
         }
       />
-      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/profile" element={<MainLayout><ProfilePage /></MainLayout>} />
       <Route
         path="/doctor/schedule"
         element={
-          <RequireRole role="DOCTOR">
-            <DoctorSchedulePage />
-          </RequireRole>
+          <MainLayout>
+            <RequireRole role="DOCTOR">
+              <DoctorSchedulePage />
+            </RequireRole>
+          </MainLayout>
         }
       />
       <Route
         path="/doctor/appointments"
         element={
-          <RequireRole role="DOCTOR">
-            <DoctorAppointmentsPage />
-          </RequireRole>
+          <MainLayout>
+            <RequireRole role="DOCTOR">
+              <DoctorAppointmentsPage />
+            </RequireRole>
+          </MainLayout>
         }
       />
       <Route
