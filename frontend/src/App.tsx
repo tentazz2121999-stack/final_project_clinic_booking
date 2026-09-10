@@ -13,6 +13,7 @@ import AdminStatsPage from "./pages/admin/AdminStatsPage";
 import AdminDoctorsPage from "./pages/admin/AdminDoctorsPage";
 import AdminSpecialtiesPage from "./pages/admin/AdminSpecialtiesPage";
 import AdminAppointmentsPage from "./pages/admin/AdminAppointmentsPage";
+import SymptomCheckerPage from "./pages/SymptomCheckerPage";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/doctors" element={<DoctorListPage />} />
       <Route path="/doctors/:id" element={<DoctorDetailPage />} />
+      <Route path="/symptom-checker" element={<SymptomCheckerPage />} />
       <Route
         path="/appointments/me"
         element={

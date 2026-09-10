@@ -30,6 +30,9 @@ export default function HomePage() {
               <Button variant="contained" onClick={() => navigate("/doctors")}>
                 Tìm bác sĩ
               </Button>
+              <Button variant="outlined" onClick={() => navigate("/symptom-checker")}>
+                Gợi ý chuyên khoa (AI)
+              </Button>
               <Button variant="outlined" onClick={() => navigate("/profile")}>
                 Hồ sơ của tôi
               </Button>
@@ -72,6 +75,9 @@ export default function HomePage() {
               </Button>
               <Button variant="text" onClick={() => navigate("/doctors")}>
                 Tìm bác sĩ
+              </Button>
+              <Button variant="text" onClick={() => navigate("/symptom-checker")}>
+                Gợi ý chuyên khoa (AI)
               </Button>
             </Stack>
           </>
