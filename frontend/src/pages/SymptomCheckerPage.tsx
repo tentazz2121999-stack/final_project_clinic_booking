@@ -27,11 +27,11 @@ export default function SymptomCheckerPage() {
   };
 
   return (
-    <Box maxWidth={640} mx="auto">
-      <Typography variant="h5" fontWeight={700} mb={1}>
+    <Box sx={{ maxWidth: 640, mx: "auto" }}>
+      <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
         Gợi ý chuyên khoa từ triệu chứng
       </Typography>
-      <Typography variant="body2" color="text.secondary" mb={3}>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
         Mô tả triệu chứng bạn đang gặp bằng tiếng Việt (ví dụ: "tôi hay đau đầu và mất ngủ"), AI sẽ gợi ý chuyên
         khoa phù hợp để bạn tìm bác sĩ.
       </Typography>
@@ -60,7 +60,7 @@ export default function SymptomCheckerPage() {
       )}
 
       {result && (
-        <Box mt={3}>
+        <Box sx={{ mt: 3 }}>
           <Alert severity="warning" sx={{ mb: 2 }}>
             {result.disclaimer}
           </Alert>
@@ -69,7 +69,7 @@ export default function SymptomCheckerPage() {
             <Alert severity="info">{result.fallbackMessage}</Alert>
           ) : (
             <Paper variant="outlined" sx={{ p: 2 }}>
-              <Typography variant="subtitle1" fontWeight={700} mb={1}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
                 Chuyên khoa được gợi ý:
               </Typography>
               <List>

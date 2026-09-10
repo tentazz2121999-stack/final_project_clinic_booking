@@ -60,7 +60,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
           </Stack>
 
           {isAuthenticated && user ? (
-            <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
               <Button component={RouterLink} to="/profile" sx={navLinkSx}>
                 {user.fullName}
               </Button>
