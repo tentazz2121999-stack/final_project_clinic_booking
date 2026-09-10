@@ -91,7 +91,7 @@ async function suggestSpecialty(symptomsText: string) {
       config: {
         abortSignal: controller.signal,
         temperature: 0.3,
-        maxOutputTokens: 300,
+        maxOutputTokens: 1024,
       },
     });
 
@@ -110,6 +110,7 @@ async function suggestSpecialty(symptomsText: string) {
     };
   } catch (err) {
     if (err instanceof ApiError) throw err;
+    console.warn("[ai.service] Gọi Gemini thất bại:", err instanceof Error ? err.message : err);
     throw classifyGeminiError(err);
   } finally {
     clearTimeout(timer);

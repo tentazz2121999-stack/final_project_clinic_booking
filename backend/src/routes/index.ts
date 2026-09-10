@@ -6,6 +6,7 @@ import doctorRoutes from "./doctor.routes";
 import appointmentRoutes from "./appointment.routes";
 import userRoutes from "./user.routes";
 import statsRoutes from "./stats.routes";
+import aiRoutes from "./ai.routes";
 
 const router = express.Router();
 
@@ -15,5 +16,6 @@ router.use("/doctors", doctorRoutes);
 router.use("/appointments", appointmentRoutes);
 router.use("/users", userRoutes);
 router.use("/stats", statsRoutes);
+router.use("/ai", aiRoutes);
 
 export default router;
